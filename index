@@ -1,0 +1,407 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamTR — Kendi Yayın Platformun</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b10;
+  --surface:#0e1219;
+  --surface2:#141926;
+  --surface3:#1c2333;
+  --accent:#e8ff47;
+  --accent2:#00d4aa;
+  --text:#f0f2f8;
+  --text2:#8b95aa;
+  --text3:#3d4558;
+  --border:#1e2738;
+  --red:#ff3d5a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 48px;background:rgba(8,11,16,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--text)}
+.logo span{color:var(--accent)}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:14px;font-weight:500;transition:.2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--accent);color:#000;font-weight:600;font-size:14px;padding:10px 24px;border-radius:6px;text-decoration:none;transition:.2s}
+.nav-cta:hover{opacity:.85}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(232,255,71,.06) 0%,transparent 70%)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:.4}
+.hero-content{position:relative;max-width:800px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);color:var(--accent2);font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;margin-bottom:32px;letter-spacing:.5px}
+.hero-badge-dot{width:6px;height:6px;background:var(--accent2);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,10vw,120px);line-height:.95;letter-spacing:2px;margin-bottom:24px}
+h1 em{color:var(--accent);font-style:normal}
+.hero-sub{font-size:18px;color:var(--text2);max-width:520px;margin:0 auto 48px;line-height:1.7}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--accent);color:#000;font-weight:700;font-size:16px;padding:16px 40px;border-radius:8px;text-decoration:none;transition:.2s;border:none;cursor:pointer}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(232,255,71,.25)}
+.btn-secondary{background:transparent;color:var(--text);font-weight:600;font-size:16px;padding:16px 40px;border-radius:8px;text-decoration:none;border:1px solid var(--border);transition:.2s;cursor:pointer}
+.btn-secondary:hover{border-color:var(--text2);background:var(--surface2)}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:64px;padding-top:48px;border-top:1px solid var(--border)}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:40px;color:var(--text);letter-spacing:1px}
+.stat-label{font-size:13px;color:var(--text2);margin-top:4px}
+
+/* HOW IT WORKS */
+.section{padding:100px 48px;max-width:1200px;margin:0 auto}
+.section-label{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,64px);letter-spacing:1px;margin-bottom:56px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;position:relative;transition:.3s}
+.step:hover{border-color:var(--accent);transform:translateY(-4px)}
+.step-num{font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--border);line-height:1;margin-bottom:16px;transition:.3s}
+.step:hover .step-num{color:var(--accent)}
+.step-title{font-size:18px;font-weight:600;margin-bottom:10px}
+.step-desc{font-size:14px;color:var(--text2);line-height:1.7}
+
+/* FEATURES */
+.features-wrap{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border)}
+.feature{background:var(--surface);padding:40px;transition:.2s}
+.feature:hover{background:var(--surface2)}
+.feature-icon{width:44px;height:44px;border-radius:10px;background:var(--surface3);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px}
+.feature-title{font-size:17px;font-weight:600;margin-bottom:8px}
+.feature-desc{font-size:14px;color:var(--text2);line-height:1.7}
+
+/* PRICING */
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.plan{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;position:relative;transition:.3s}
+.plan:hover{transform:translateY(-4px)}
+.plan.featured{border-color:var(--accent);background:linear-gradient(135deg,var(--surface) 0%,rgba(232,255,71,.05) 100%)}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap;letter-spacing:.5px}
+.plan-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:8px}
+.plan-price{font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:1px;color:var(--accent);line-height:1}
+.plan-price span{font-size:20px;color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:400}
+.plan-desc{font-size:13px;color:var(--text2);margin:12px 0 28px;line-height:1.6}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.plan-features li{font-size:14px;display:flex;align-items:center;gap:10px;color:var(--text2)}
+.plan-features li::before{content:"✓";color:var(--accent2);font-weight:700;font-size:13px;flex-shrink:0}
+.plan-features li.no::before{content:"✕";color:var(--text3)}
+.plan-features li.no{color:var(--text3)}
+.plan-btn{width:100%;padding:14px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;text-align:center;text-decoration:none;display:block}
+.plan-btn.outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.plan-btn.outline:hover{border-color:var(--text2)}
+.plan-btn.solid{background:var(--accent);border:none;color:#000}
+.plan-btn.solid:hover{opacity:.85}
+
+/* FAQ */
+.faq{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.faq-q{padding:20px 24px;font-size:15px;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.faq-q:hover{background:var(--surface2)}
+.faq-arrow{color:var(--text2);transition:.3s;font-size:18px}
+.faq-item.open .faq-arrow{transform:rotate(45deg);color:var(--accent)}
+.faq-a{max-height:0;overflow:hidden;transition:.3s;font-size:14px;color:var(--text2);line-height:1.7}
+.faq-item.open .faq-a{max-height:200px}
+.faq-a-inner{padding:0 24px 20px}
+
+/* CTA */
+.cta-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;padding:100px 48px;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(232,255,71,.04) 0%,transparent 70%)}
+.cta-section h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,6vw,80px);letter-spacing:2px;margin-bottom:16px;position:relative}
+.cta-section p{font-size:18px;color:var(--text2);margin-bottom:40px;position:relative}
+
+/* FOOTER */
+footer{padding:48px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);flex-wrap:wrap;gap:16px}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px}
+.footer-logo span{color:var(--accent)}
+footer p{font-size:13px;color:var(--text3)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;max-width:480px;width:90%;position:relative}
+.modal h3{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;margin-bottom:8px}
+.modal p{font-size:14px;color:var(--text2);margin-bottom:24px}
+.modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;line-height:1}
+.form-group{margin-bottom:16px}
+.form-group label{font-size:13px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:14px;padding:10px 14px;border-radius:8px;outline:none;font-family:'DM Sans',sans-serif;transition:.2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface2)}
+.modal-submit{width:100%;background:var(--accent);border:none;color:#000;font-weight:700;font-size:15px;padding:14px;border-radius:8px;cursor:pointer;margin-top:8px;transition:.2s}
+.modal-submit:hover{opacity:.85}
+
+@media(max-width:768px){
+  nav{padding:14px 20px}
+  .nav-links{display:none}
+  .section{padding:60px 20px}
+  .hero-stats{gap:24px}
+  footer{padding:32px 20px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">STREAM<span>TR</span></div>
+  <ul class="nav-links">
+    <li><a href="#nasil">Nasıl Çalışır</a></li>
+    <li><a href="#ozellikler">Özellikler</a></li>
+    <li><a href="#paketler">Paketler</a></li>
+    <li><a href="#sss">SSS</a></li>
+  </ul>
+  <a href="#" class="nav-cta" onclick="openModal()">Ücretsiz Başla</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Türkiye'nin Yayıncı Platformu
+    </div>
+    <h1>KENDİ<br><em>YAYININI</em><br>KURIYORSUN</h1>
+    <p class="hero-sub">TikTok'a, Kick'e bağımlı değilsin. Kendi kuralların, kendi markan, kendi gelirin. Dakikalar içinde yayına geç.</p>
+    <div class="hero-btns">
+      <a href="#" class="btn-primary" onclick="openModal()">Hemen Başla — Ücretsiz</a>
+      <a href="#nasil" class="btn-secondary">Nasıl Çalışır?</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">0₺</div>
+        <div class="stat-label">Başlangıç maliyeti</div>
+      </div>
+      <div>
+        <div class="stat-num">5dk</div>
+        <div class="stat-label">Kurulum süresi</div>
+      </div>
+      <div>
+        <div class="stat-num">%100</div>
+        <div class="stat-label">Sana ait platform</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="features-wrap" id="ozellikler">
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">🎮</div>
+      <div class="feature-title">Oyun & Ekran Yayını</div>
+      <div class="feature-desc">OBS ile direkt bağlan. 1080p 60fps'e kadar yayın yap. Gecikme yok, kesinti yok.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Canlı Sohbet</div>
+      <div class="feature-desc">Gerçek zamanlı chat. Kelime filtresi, kullanıcı yasaklama, slow mode. Tamamen senin kontrolünde.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">Moderasyon Araçları</div>
+      <div class="feature-desc">Spam, toksik kullanıcı ve istenmeyen içeriklere karşı güçlü mod paneli.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💰</div>
+      <div class="feature-title">Abonelik Sistemi</div>
+      <div class="feature-desc">İzleyicilerinden aylık abonelik al. Ödeme doğrudan sana gider, aracı yok.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔗</div>
+      <div class="feature-title">Özel Link</div>
+      <div class="feature-desc">streamtr.com/seninismin formatında paylaşılabilir yayın linki.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Analitik Panel</div>
+      <div class="feature-desc">İzleyici sayısı, yayın süresi, gelir takibi. Tüm veriler tek ekranda.</div>
+    </div>
+  </div>
+</div>
+
+<div id="nasil">
+  <div class="section">
+    <div class="section-label">Nasıl Çalışır</div>
+    <div class="section-title">4 ADIMDA YAYINDASIN</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Kayıt Ol</div>
+        <div class="step-desc">Email ile 30 saniyede hesap oluştur. Kredi kartı gerekmez.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">OBS'i Bağla</div>
+        <div class="step-desc">Sana özel RTMP adresi ve stream key'ini OBS'e yapıştır.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Yayını Özelleştir</div>
+        <div class="step-desc">Başlık, kategori, chat kuralları. Her şey senin kontrolünde.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Linkini Paylaş</div>
+        <div class="step-desc">streamtr.com/seninismin adresini paylaş, izleyiciler gelsin.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="paketler">
+  <div class="section">
+    <div class="section-label">Paketler</div>
+    <div class="section-title">SANA UYGUN PAKETİ SEÇ</div>
+    <div class="pricing">
+
+      <div class="plan">
+        <div class="plan-name">Başlangıç</div>
+        <div class="plan-price">0<span>₺/ay</span></div>
+        <div class="plan-desc">Yayıncılığa başlamak için ihtiyacın olan her şey.</div>
+        <ul class="plan-features">
+          <li>720p yayın kalitesi</li>
+          <li>50 eş zamanlı izleyici</li>
+          <li>Canlı sohbet</li>
+          <li>Temel moderasyon</li>
+          <li class="no">Abonelik sistemi</li>
+          <li class="no">Özel domain</li>
+          <li class="no">Öncelikli destek</li>
+        </ul>
+        <a href="#" class="plan-btn outline" onclick="openModal()">Ücretsiz Başla</a>
+      </div>
+
+      <div class="plan featured">
+        <div class="plan-badge">EN POPÜLER</div>
+        <div class="plan-name">Yayıncı</div>
+        <div class="plan-price">149<span>₺/ay</span></div>
+        <div class="plan-desc">Ciddi yayıncılar için gelişmiş özellikler ve para kazanma araçları.</div>
+        <ul class="plan-features">
+          <li>1080p 60fps yayın</li>
+          <li>500 eş zamanlı izleyici</li>
+          <li>Canlı sohbet + emojiler</li>
+          <li>Gelişmiş moderasyon</li>
+          <li>Abonelik sistemi</li>
+          <li>Analitik panel</li>
+          <li class="no">Özel domain</li>
+        </ul>
+        <a href="#" class="plan-btn solid" onclick="openModal()">Hemen Başla</a>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">399<span>₺/ay</span></div>
+        <div class="plan-desc">Profesyonel yayıncılar ve topluluklar için sınırsız özellikler.</div>
+        <ul class="plan-features">
+          <li>4K yayın kalitesi</li>
+          <li>Sınırsız izleyici</li>
+          <li>Tam moderasyon paketi</li>
+          <li>Abonelik + bağış sistemi</li>
+          <li>Özel domain desteği</li>
+          <li>Öncelikli destek</li>
+          <li>Özel branding</li>
+        </ul>
+        <a href="#" class="plan-btn outline" onclick="openModal()">Pro'ya Geç</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="sss">
+  <div class="section">
+    <div class="section-label">Sık Sorulan Sorular</div>
+    <div class="section-title">AKLINDA SORU MU VAR?</div>
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">TikTok veya Kick'ten farkı ne? <span class="faq-arrow">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Bu platformlarda kuralları onlar koyar, içeriğini onlar yönetir, gelirinden onlar pay alır. StreamTR'de her şey sana ait. Kim izler, ne izler, ne kadar kazanırsın — tamamen senin kararın.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Teknik bilgi gerekiyor mu? <span class="faq-arrow">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Hayır. OBS Studio'yu kurup, sana verdiğimiz RTMP adresini yapıştırman yeterli. Adım adım rehberimiz her şeyi anlatıyor.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Ödeme nasıl alacağım? <span class="faq-arrow">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Abonelerinizden gelen ödemeler doğrudan banka hesabınıza aktarılır. Aracı komisyonu yoktur, kazandığınızın tamamı sizin.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Ücretsiz pakette ne kadar kalabilirim? <span class="faq-arrow">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Süresiz. Ücretsiz paket kalıcıdır, süre sınırı yoktur. İhtiyaçların büyüdükçe yükseltebilirsin.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Yayın kesilirse ne olur? <span class="faq-arrow">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">OBS otomatik yeniden bağlanma özelliği ile yayın kesilse bile saniyeler içinde devam eder. Sunucularımız %99.9 uptime garantisi sunar.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-section">
+  <h2>HAZIR MISIN?</h2>
+  <p>Bugün kaydol, dakikalar içinde yayındasın.</p>
+  <a href="#" class="btn-primary" onclick="openModal()">Ücretsiz Hesap Oluştur</a>
+</div>
+
+<footer>
+  <div class="footer-logo">STREAM<span>TR</span></div>
+  <p>© 2025 StreamTR — Tüm hakları saklıdır.</p>
+</footer>
+
+<!-- KAYIT MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3>HESAP OLUŞTUR</h3>
+    <p>Ücretsiz başla, istediğin zaman yükselt.</p>
+    <div class="form-group">
+      <label>Yayıncı Adın</label>
+      <input type="text" placeholder="ör: oyuncu_ahmet">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" placeholder="email@adresin.com">
+    </div>
+    <div class="form-group">
+      <label>Şifre</label>
+      <input type="password" placeholder="En az 8 karakter">
+    </div>
+    <div class="form-group">
+      <label>Yayın Kategorisi</label>
+      <select>
+        <option>🎮 Oyun Yayını</option>
+        <option>🎵 Müzik</option>
+        <option>💬 Sohbet</option>
+        <option>📚 Eğitim</option>
+        <option>🎨 Sanat & Tasarım</option>
+        <option>🏋️ Spor & Fitness</option>
+      </select>
+    </div>
+    <button class="modal-submit" onclick="submitForm()">Ücretsiz Başla →</button>
+  </div>
+</div>
+
+<script>
+function openModal(){document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function toggleFaq(el){
+  const item=el.closest('.faq-item');
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!isOpen)item.classList.add('open');
+}
+function submitForm(){
+  const btn=document.querySelector('.modal-submit');
+  btn.textContent='Hesap oluşturuluyor...';
+  setTimeout(()=>{
+    btn.textContent='✓ Hoş geldin! Yönlendiriliyorsun...';
+    btn.style.background='#00d4aa';
+    setTimeout(closeModal,2000);
+  },1500);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+</script>
+</body>
+</html>
