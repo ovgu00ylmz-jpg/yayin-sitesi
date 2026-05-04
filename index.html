@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamTR — Canlı Yayın</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b10;--surface:#0e1219;--surface2:#141926;--surface3:#1c2333;
+  --accent:#e8ff47;--accent2:#00d4aa;--text:#f0f2f8;--text2:#8b95aa;--text3:#3d4558;
+  --border:#1e2738;--red:#ff3d5a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(8,11,16,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;cursor:pointer}
+.logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-cta{background:var(--accent);color:#000;font-weight:600;font-size:13px;padding:8px 20px;border-radius:6px;cursor:pointer;border:none;transition:.2s;font-family:'DM Sans',sans-serif}
+.nav-cta:hover{opacity:.85}
+.nav-login{background:transparent;color:var(--text2);font-size:13px;padding:8px 16px;border-radius:6px;cursor:pointer;border:1px solid var(--border);transition:.2s;font-family:'DM Sans',sans-serif}
+.nav-login:hover{border-color:var(--text2);color:var(--text)}
+.user-badge{display:none;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:8px}
+.user-badge-name{font-size:13px;font-weight:500;color:var(--accent)}
+.logout-btn{background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.logout-btn:hover{color:var(--red)}
+
+/* ANA YAYIN SAYFASI */
+.stream-layout{display:grid;grid-template-columns:1fr 320px;grid-template-rows:auto 1fr;min-height:100vh;padding-top:56px}
+.stream-main{padding:16px;display:flex;flex-direction:column;gap:12px}
+.video-container{background:#000;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:16/9;border:1px solid var(--border)}
+video{width:100%;height:100%;display:block}
+.offline-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,#080b10,#141926)}
+.offline-icon{font-size:48px}
+.offline-text{font-size:15px;color:var(--text2)}
+.offline-sub{font-size:13px;color:var(--text3)}
+.live-indicator{position:absolute;top:12px;left:12px;display:none;align-items:center;gap:6px;background:rgba(255,61,90,.9);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:.5px}
+.live-dot{width:6px;height:6px;background:#fff;border-radius:50%;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.viewer-pill{position:absolute;top:12px;right:12px;display:none;align-items:center;gap:5px;background:rgba(0,0,0,.7);color:var(--text2);font-size:12px;padding:4px 10px;border-radius:4px}
+
+.stream-info{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.stream-title-area{}
+.stream-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px}
+.stream-tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.tag{background:var(--surface2);border:1px solid var(--border);color:var(--accent2);font-size:11px;padding:3px 10px;border-radius:20px}
+.streamer-info{display:flex;align-items:center;gap:10px;margin-top:12px}
+.streamer-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-family:'Bebas Neue',sans-serif;color:#000;font-weight:700}
+.streamer-name{font-size:14px;font-weight:600}
+.streamer-sub{font-size:12px;color:var(--text2)}
+.follow-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:500;padding:6px 16px;border-radius:6px;cursor:pointer;transition:.2s;font-family:'DM Sans',sans-serif;margin-left:auto}
+.follow-btn:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.follow-btn.following{background:var(--accent2);color:#000;border-color:var(--accent2)}
+
+/* CHAT */
+.chat-panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;height:calc(100vh - 56px);position:sticky;top:56px}
+.chat-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chat-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.chat-online{font-size:11px;color:var(--accent2);display:flex;align-items:center;gap:4px}
+.chat-online::before{content:'';width:6px;height:6px;background:var(--accent2);border-radius:50%}
+.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:5px}
+.chat-messages::-webkit-scrollbar{width:3px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.chat-msg{font-size:13px;line-height:1.5;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.chat-msg-name{font-weight:600;margin-right:4px}
+.chat-msg-text{color:var(--text2)}
+.chat-msg.banned{opacity:.2;text-decoration:line-through}
+.msg-wrap{display:flex;align-items:baseline;gap:4px}
+.msg-actions{display:none;gap:3px}
+.chat-msg:hover .msg-actions{display:flex}
+.msg-act-btn{background:var(--surface3);border:none;color:var(--text3);font-size:9px;padding:1px 5px;border-radius:3px;cursor:pointer;transition:.1s}
+.msg-act-btn:hover{background:var(--red);color:#fff}
+
+.mod-bar{padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);display:none}
+.mod-bar.show{display:block}
+.mod-bar-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.banned-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:5px 8px;border-radius:4px;outline:none;font-family:'DM Sans',sans-serif}
+.banned-input:focus{border-color:var(--accent)}
+.mod-save-btn{width:100%;margin-top:5px;background:var(--accent);border:none;color:#000;font-size:11px;font-weight:600;padding:5px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.slowmode-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.slowmode-row label{font-size:10px;color:var(--text3)}
+.slowmode-row input{flex:1}
+.slowmode-row span{font-size:10px;color:var(--accent);min-width:24px}
+
+.chat-input-area{padding:10px}
+.nick-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.nick-input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:5px 10px;border-radius:5px;outline:none;font-family:'DM Sans',sans-serif}
+.nick-input:focus{border-color:var(--accent)}
+.mod-toggle-btn{background:var(--surface3);border:1px solid var(--border);color:var(--text2);font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:.15s}
+.mod-toggle-btn:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.mod-toggle-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+.msg-row{display:flex;gap:6px}
+.msg-input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:13px;padding:9px 12px;border-radius:6px;outline:none;font-family:'DM Sans',sans-serif;transition:.2s}
+.msg-input:focus{border-color:var(--accent)}
+.send-btn{background:var(--accent);border:none;color:#000;font-weight:700;font-size:13px;padding:9px 16px;border-radius:6px;cursor:pointer;transition:.2s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.send-btn:hover{opacity:.85}
+
+/* LANDING */
+.landing{display:none;min-height:100vh;flex-direction:column}
+.landing.show{display:flex}
+.hero{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(232,255,71,.06) 0%,transparent 70%)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:.4}
+.hero-content{position:relative;max-width:800px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);color:var(--accent2);font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;margin-bottom:32px}
+.hero-badge-dot{width:6px;height:6px;background:var(--accent2);border-radius:50%;animation:pulse 1.5s infinite}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,10vw,110px);line-height:.95;letter-spacing:2px;margin-bottom:24px}
+h1 em{color:var(--accent);font-style:normal}
+.hero-sub{font-size:17px;color:var(--text2);max-width:500px;margin:0 auto 40px;line-height:1.7}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--accent);color:#000;font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px;border:none;cursor:pointer;transition:.2s;font-family:'DM Sans',sans-serif}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(232,255,71,.25)}
+.btn-outline{background:transparent;color:var(--text);font-weight:600;font-size:15px;padding:14px 36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:.2s;font-family:'DM Sans',sans-serif}
+.btn-outline:hover{border-color:var(--text2)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;max-width:420px;width:90%;position:relative}
+.modal h3{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
+.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
+.form-group input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:14px;padding:10px 13px;border-radius:7px;outline:none;font-family:'DM Sans',sans-serif;transition:.2s}
+.form-group input:focus{border-color:var(--accent)}
+.modal-submit{width:100%;background:var(--accent);border:none;color:#000;font-weight:700;font-size:14px;padding:13px;border-radius:7px;cursor:pointer;transition:.2s;font-family:'DM Sans',sans-serif}
+.modal-submit:hover{opacity:.85}
+.modal-submit:disabled{opacity:.5;cursor:not-allowed}
+.modal-error{background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.3);color:#ff6b80;font-size:12px;padding:9px 13px;border-radius:7px;margin-bottom:14px;display:none}
+.modal-error.show{display:block}
+.modal-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--text2)}
+.modal-switch a{color:var(--accent);cursor:pointer}
+
+footer{padding:32px 48px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px}
+.footer-logo span{color:var(--accent)}
+footer p{font-size:12px;color:var(--text3)}
+
+@media(max-width:768px){
+  nav{padding:12px 16px}
+  .stream-layout{grid-template-columns:1fr;grid-template-rows:auto auto}
+  .chat-panel{height:400px;position:static;border-left:none;border-top:1px solid var(--border)}
+  footer{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="goHome()">STREAM<span>TR</span></div>
+  <div class="nav-right">
+    <div class="user-badge" id="userBadge">
+      <span class="user-badge-name" id="userEmail"></span>
+      <button class="logout-btn" onclick="handleLogout()">Çıkış</button>
+    </div>
+    <button class="nav-login" id="loginBtn" onclick="openLogin()">Giriş Yap</button>
+    <button class="nav-cta" id="registerBtn" onclick="openRegister()">Ücretsiz Başla</button>
+  </div>
+</nav>
+
+<!-- YAYIN SAYFASI -->
+<div class="stream-layout" id="streamPage">
+  <div class="stream-main">
+    <div class="video-container">
+      <video id="videoPlayer" controls playsinline></video>
+      <div class="offline-screen" id="offlineScreen">
+        <div class="offline-icon">📡</div>
+        <div class="offline-text">Yayın şu an çevrimdışı</div>
+        <div class="offline-sub">Yayıncı yakında başlayacak...</div>
+      </div>
+      <div class="live-indicator" id="liveIndicator">
+        <div class="live-dot"></div> CANLI
+      </div>
+      <div class="viewer-pill" id="viewerPill">
+        👁 <span id="viewerCount">0</span>
+      </div>
+    </div>
+
+    <div class="stream-info">
+      <div class="stream-title-area">
+        <div class="stream-title" id="streamTitle">🎮 Canlı Oyun Yayını</div>
+        <div class="stream-tags">
+          <span class="tag">Gaming</span>
+          <span class="tag">Live</span>
+          <span class="tag">StreamTR</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="streamer-info">
+      <div class="streamer-avatar" id="streamerAvatar">S</div>
+      <div>
+        <div class="streamer-name" id="streamerName">Yayıncı</div>
+        <div class="streamer-sub">StreamTR Yayıncısı</div>
+      </div>
+      <button class="follow-btn" id="followBtn" onclick="toggleFollow()">+ Takip Et</button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-title">💬 Sohbet</div>
+      <div class="chat-online" id="chatOnline">0 çevrimiçi</div>
+    </div>
+
+    <div class="mod-bar" id="modBar">
+      <div class="mod-bar-title">🛡 Moderasyon Paneli</div>
+      <textarea class="banned-input" id="bannedWords" placeholder="Yasaklı kelimeler (virgülle ayır): spam, küfür..." rows="2">spam, reklam</textarea>
+      <div class="slowmode-row">
+        <label>Slow mode:</label>
+        <input type="range" min="0" max="30" value="0" id="slowRange" oninput="document.getElementById('slowVal').textContent=this.value+'s'">
+        <span id="slowVal">0s</span>
+      </div>
+      <button class="mod-save-btn" onclick="saveMod()">💾 Kaydet</button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages"></div>
+
+    <div class="chat-input-area">
+      <div class="nick-row">
+        <input type="text" class="nick-input" id="nickInput" placeholder="Takma adın...">
+        <button class="mod-toggle-btn" id="modToggleBtn" onclick="toggleMod()">🛡 Mod</button>
+      </div>
+      <div class="msg-row">
+        <input type="text" class="msg-input" id="msgInput" placeholder="Mesaj yaz..." maxlength="200" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="send-btn" onclick="sendMsg()">Gönder</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LANDING (giriş yapmamış kullanıcılar için) -->
+<div class="landing" id="landingPage">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-badge"><div class="hero-badge-dot"></div>Türkiye'nin Yayıncı Platformu</div>
+      <h1>KENDİ<br><em>YAYININI</em><br>KURUYORSUN</h1>
+      <p class="hero-sub">TikTok'a, Kick'e bağımlı değilsin. Kendi kuralların, kendi markan, kendi gelirin.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="openRegister()">Ücretsiz Başla</button>
+        <button class="btn-outline" onclick="goToStream()">Yayını İzle 🎮</button>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-logo">STREAM<span>TR</span></div>
+    <p>© 2025 StreamTR — Tüm hakları saklıdır.</p>
+  </footer>
+</div>
+
+<!-- KAYIT MODAL -->
+<div class="modal-bg" id="registerModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModals()">×</button>
+    <h3>HESAP OLUŞTUR</h3>
+    <p class="modal-sub">Ücretsiz başla, istediğin zaman yükselt.</p>
+    <div class="modal-error" id="registerError"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="email@adresin.com"></div>
+    <div class="form-group"><label>Şifre</label><input type="password" id="regPass" placeholder="En az 6 karakter"></div>
+    <button class="modal-submit" id="regBtn" onclick="handleRegister()">Ücretsiz Başla →</button>
+    <div class="modal-switch">Zaten hesabın var mı? <a onclick="switchToLogin()">Giriş yap</a></div>
+  </div>
+</div>
+
+<!-- GİRİŞ MODAL -->
+<div class="modal-bg" id="loginModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModals()">×</button>
+    <h3>GİRİŞ YAP</h3>
+    <p class="modal-sub">Yayın sayfasına giriş yap.</p>
+    <div class="modal-error" id="loginError"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="email@adresin.com"></div>
+    <div class="form-group"><label>Şifre</label><input type="password" id="loginPass" placeholder="Şifren"></div>
+    <button class="modal-submit" id="loginBtn2" onclick="handleLogin()">Giriş Yap →</button>
+    <div class="modal-switch">Hesabın yok mu? <a onclick="switchToRegister()">Kayıt ol</a></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAkV9wKMsAohBfsLq4ZAOOe5NasO7xmXqs",
+  authDomain: "streamtr-ba45a.firebaseapp.com",
+  projectId: "streamtr-ba45a",
+  storageBucket: "streamtr-ba45a.firebasestorage.app",
+  messagingSenderId: "990737732753",
+  appId: "1:990737732753:web:5a3cd5db81e9d47a121b30"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+function updateUI(user){
+  const badge = document.getElementById('userBadge');
+  const loginBtn = document.getElementById('loginBtn');
+  const registerBtn = document.getElementById('registerBtn');
+  if(user){
+    badge.style.display='flex';
+    const name = user.email.split('@')[0];
+    document.getElementById('userEmail').textContent = name;
+    loginBtn.style.display='none';
+    registerBtn.style.display='none';
+    document.getElementById('streamerName').textContent = name;
+    document.getElementById('streamerAvatar').textContent = name[0].toUpperCase();
+    goToStream();
+  } else {
+    badge.style.display='none';
+    loginBtn.style.display='block';
+    registerBtn.style.display='block';
+    showLanding();
+  }
+}
+
+onAuthStateChanged(auth, updateUI);
+
+window.handleRegister = async function(){
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const btn = document.getElementById('regBtn');
+  const err = document.getElementById('registerError');
+  err.classList.remove('show');
+  if(!email||!pass){err.textContent='Email ve şifre gir.';err.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Oluşturuluyor...';
+  try{
+    await createUserWithEmailAndPassword(auth,email,pass);
+    closeModals();
+  }catch(e){
+    const msgs={'auth/email-already-in-use':'Bu email zaten kayıtlı.','auth/weak-password':'Şifre en az 6 karakter olmalı.','auth/invalid-email':'Geçersiz email.'};
+    err.textContent=msgs[e.code]||'Hata: '+e.message;
+    err.classList.add('show');
+  }
+  btn.disabled=false;btn.textContent='Ücretsiz Başla →';
+};
+
+window.handleLogin = async function(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn2');
+  const err = document.getElementById('loginError');
+  err.classList.remove('show');
+  if(!email||!pass){err.textContent='Email ve şifre gir.';err.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Giriş yapılıyor...';
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    closeModals();
+  }catch(e){
+    const msgs={'auth/user-not-found':'Email bulunamadı.','auth/wrong-password':'Şifre yanlış.','auth/invalid-credential':'Email veya şifre hatalı.'};
+    err.textContent=msgs[e.code]||'Hata: '+e.message;
+    err.classList.add('show');
+  }
+  btn.disabled=false;btn.textContent='Giriş Yap →';
+};
+
+window.handleLogout = async function(){
+  await signOut(auth);
+};
+</script>
+
+<script>
+// ⬇️ BURAYA KENDİ CLOUDFLARE LİNKİNİ YAZ
+const STREAM_URL = 'https://involving-parks-physician-relate.trycloudflare.com/live/test/index.m3u8';
+const STREAM_KEY = 'test';
+
+let bannedWords = ['spam','reklam'];
+let slowMode = 0;
+let lastMsgTime = 0;
+let isFollowing = false;
+let viewers = 0;
+const colors = ['#00e5a0','#7c4dff','#ff6b35','#00bfff','#ffd700','#ff69b4'];
+
+function getColor(name){let h=0;for(let c of name)h=(h*31+c.charCodeAt(0))%colors.length;return colors[h];}
+
+function showLanding(){
+  document.getElementById('landingPage').classList.add('show');
+  document.getElementById('streamPage').style.display='none';
+}
+function goToStream(){
+  document.getElementById('landingPage').classList.remove('show');
+  document.getElementById('streamPage').style.display='grid';
+  initPlayer();
+}
+function goHome(){showLanding()}
+
+function initPlayer(){
+  const video = document.getElementById('videoPlayer');
+  const offline = document.getElementById('offlineScreen');
+  const liveInd = document.getElementById('liveIndicator');
+  const viewerPill = document.getElementById('viewerPill');
+
+  if(Hls.isSupported()){
+    const hls = new Hls({liveSyncDurationCount:3});
+    hls.loadSource(STREAM_URL);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, ()=>{
+      video.play();
+      offline.style.display='none';
+      liveInd.style.display='flex';
+      viewerPill.style.display='flex';
+      viewers = Math.floor(Math.random()*50)+5;
+      document.getElementById('viewerCount').textContent=viewers;
+      document.getElementById('chatOnline').textContent=viewers+' çevrimiçi';
+      addSystemMsg('🎮 Yayın başladı! Hoş geldiniz!');
+      setInterval(()=>{
+        viewers+=Math.floor(Math.random()*3)-1;
+        if(viewers<1)viewers=1;
+        document.getElementById('viewerCount').textContent=viewers;
+        document.getElementById('chatOnline').textContent=viewers+' çevrimiçi';
+      },5000);
+    });
+    hls.on(Hls.Events.ERROR,(e,data)=>{
+      if(data.fatal){
+        offline.style.display='flex';
+        liveInd.style.display='none';
+        viewerPill.style.display='none';
+      }
+    });
+  } else if(video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src=STREAM_URL;
+    video.play();
+    offline.style.display='none';
+    liveInd.style.display='flex';
+    viewerPill.style.display='flex';
+  }
+}
+
+function addSystemMsg(text){
+  const chat = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className='chat-msg';
+  div.innerHTML=`<span style="color:var(--text3);font-size:12px">${text}</span>`;
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function addMsg(name,text,isMod=false){
+  let filtered=text;
+  bannedWords.forEach(w=>{if(w.trim())filtered=filtered.replace(new RegExp(w.trim(),'gi'),'***')});
+  const chat=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='chat-msg';
+  const modBadge=isMod?'<span style="background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:4px">MOD</span>':'';
+  div.innerHTML=`<div class="msg-wrap">${modBadge}<span class="chat-msg-name" style="color:${getColor(name)}">${esc(name)}</span><span class="chat-msg-text">${esc(filtered)}</span><span class="msg-actions"><button class="msg-act-btn" onclick="banMsg(this)">🚫</button></span></div>`;
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function banMsg(btn){btn.closest('.chat-msg').classList.add('banned')}
+
+function sendMsg(){
+  const input=document.getElementById('msgInput');
+  const nick=document.getElementById('nickInput').value.trim()||'İzleyici';
+  const text=input.value.trim();
+  if(!text)return;
+  if(slowMode>0){
+    const now=Date.now();
+    if(now-lastMsgTime<slowMode*1000){
+      addSystemMsg(`⏱ ${Math.ceil(slowMode-(now-lastMsgTime)/1000)}s bekle`);
+      return;
+    }
+    lastMsgTime=now;
+  }
+  addMsg(nick,text,nick.toLowerCase().includes('mod'));
+  input.value='';
+}
+
+function toggleMod(){
+  const bar=document.getElementById('modBar');
+  const btn=document.getElementById('modToggleBtn');
+  bar.classList.toggle('show');
+  btn.classList.toggle('active');
+}
+
+function saveMod(){
+  bannedWords=document.getElementById('bannedWords').value.split(',').map(w=>w.trim()).filter(Boolean);
+  slowMode=parseInt(document.getElementById('slowRange').value)||0;
+  addSystemMsg('✅ Mod ayarları kaydedildi');
+  document.getElementById('modBar').classList.remove('show');
+  document.getElementById('modToggleBtn').classList.remove('active');
+}
+
+function toggleFollow(){
+  isFollowing=!isFollowing;
+  const btn=document.getElementById('followBtn');
+  btn.textContent=isFollowing?'✓ Takip Ediliyor':'+ Takip Et';
+  btn.classList.toggle('following',isFollowing);
+  addSystemMsg(isFollowing?'💚 Yayıncıyı takip etmeye başladın!':'Takipten çıkıldı.');
+}
+
+function openRegister(){document.getElementById('registerModal').classList.add('show')}
+function openLogin(){document.getElementById('loginModal').classList.add('show')}
+function closeModals(){document.getElementById('registerModal').classList.remove('show');document.getElementById('loginModal').classList.remove('show')}
+function switchToLogin(){closeModals();openLogin()}
+function switchToRegister(){closeModals();openRegister()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModals()});
+
+// Demo chat mesajları
+const demoMsgs=[
+  {n:'ahmet_g',m:'selam herkese 👋'},{n:'zeynep_plays',m:'yayın ne zaman başlıyor?'},
+  {n:'oyuncu_tr',m:'harika yayın!'},
+  {n:'gamer456',m:'hangi oyun oynuyoruz?'},{n:'izleyici7',m:'POGGERS 🔥'},
+];
+let demoIdx=0;
+setInterval(()=>{
+  if(demoIdx<demoMsgs.length && document.getElementById('streamPage').style.display!=='none'){
+    const m=demoMsgs[demoIdx++];
+    addMsg(m.n,m.m);
+  }
+},3000);
+</script>
+</body>
+</html>
